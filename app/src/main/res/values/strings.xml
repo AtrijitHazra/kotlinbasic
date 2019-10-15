@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">Kotlin Sample</string>
+    <string name="name">Rahul</string>
+    <string name="message">In order to change the visibility programmatically, you should use View.VISIBLE , View.INVISIBLE or View.GONE . Setting the visibility using myView.visibility</string>
 </resources>
