@@ -15,41 +15,55 @@ import com.google.android.gms.common.SignInButton
 import androidx.core.app.ComponentActivity.ExtraData
 import androidx.core.content.ContextCompat.getSystemService
 import android.icu.lang.UCharacter.GraphemeClusterBreak.T
+import android.view.View
+import androidx.databinding.DataBindingUtil
+import androidx.lifecycle.ViewModelProviders
 import com.google.firebase.auth.FirebaseUser
 import com.kotlinsample.R
+import com.kotlinsample.databinding.ActivityLoginBinding
+import com.kotlinsample.viewmodels.LoginViewModel
 
 
 class LoginActivity : AppCompatActivity() {
 
-    private val TAG : String = "LoginActivity"
+    private val TAG: String = "LoginActivity"
     private lateinit var auth: FirebaseAuth
     val RC_SIGN_IN = 10
+
+    var loginViewModel: LoginViewModel? = null
+    var activityLoginBinding: ActivityLoginBinding? = null
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_login)
 
-        // Initialize Firebase Auth
-        auth = FirebaseAuth.getInstance()
-        // Configure Google Sign In
+        loginViewModel = LoginViewModel()
+        activityLoginBinding = DataBindingUtil.setContentView(this, R.layout.activity_login)
+
+        activityLoginBinding!!.loginActivity = this
+        activityLoginBinding!!.loginViewModel =
+            ViewModelProviders.of(this).get(LoginViewModel::class.java)
+
+
+
+        auth = loginViewModel!!.getAuthVar()
+
+
+    }
+
+     fun onGoogleSignInClicked(view : View){
+
+         print("clicked")
+
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestIdToken(getString(R.string.default_web_client_id))
             .requestEmail()
             .build()
 
-        // Set the dimensions of the sign-in button.
-        val signInButton: SignInButton = findViewById(R.id.sign_in_button)
-        signInButton.setSize(SignInButton.SIZE_STANDARD)
+        val googleSignInClient = GoogleSignIn.getClient(this, gso)
+        val signInIntent = googleSignInClient.signInIntent
 
-        signInButton.setOnClickListener{
-            val googleSignInClient = GoogleSignIn.getClient(this,gso)
-            val signInIntent = googleSignInClient.signInIntent
-            startActivityForResult(signInIntent, RC_SIGN_IN)
-        }
-
-
-
+        startActivityForResult(signInIntent, RC_SIGN_IN)
     }
 
     public override fun onStart() {
@@ -60,10 +74,10 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun updateUI(currentUser: FirebaseUser?) {
-      if (currentUser!=null){
-          startActivity(Intent(this,MainActivity::class.java))
-          finish()
-      }
+        if (currentUser != null) {
+            startActivity(Intent(this, MainActivity::class.java))
+            finish()
+        }
 
     }
 
@@ -80,7 +94,7 @@ class LoginActivity : AppCompatActivity() {
                 firebaseAuthWithGoogle(account!!)
             } catch (e: ApiException) {
                 // Google Sign In failed, update UI appropriately
-                Log.w(TAG, "Google sign in failed", e)
+                Log.w(TAG, "Google sign in failed  "+  e.statusCode+"    "+e.message)
                 // ...
             }
         }
